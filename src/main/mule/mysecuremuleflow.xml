@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd">
+	
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="28346ffc-dce5-4dd6-95dd-aab33bcc1375" basePath="/" >
+		<http:listener-connection protocol="HTTPS" host="0.0.0.0" port="${https.port}" tlsContext="TLS_Context">
+		</http:listener-connection>
+	</http:listener-config>
+	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="9cf02374-b49d-4f1b-b90c-3c7669408901" >
+		<tls:key-store type="pkcs12" path="localserver.p12" alias="localserver" keyPassword="test" password="test" />
+	</tls:context>
+	<!-- <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="7c5c31c7-8acd-448d-bee5-4745b3ad5c36" >
+		<http:request-connection protocol="HTTPS" />
+	</http:request-config> -->
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="e120699a-1d64-460f-b744-43717f8e2f14" >
+		<http:request-connection protocol="HTTPS" tlsContext="TLS_Client_Context1" host="fblogin-dev-ed.my.salesforce.com"/>
+	</http:request-config>
+	<!-- <http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="a4dce87d-1a6a-462d-8ae2-259c01504326" >
+		<http:request-connection protocol="HTTPS" />
+	</http:request-config> -->
+	<tls:context name="TLS_Client_Context1" doc:name="TLS Context" doc:id="986096d4-96aa-4227-991c-8694e364054d" >
+		<tls:trust-store path="localserver.p12" password="test" type="pkcs12" insecure="true" />
+	</tls:context>
+	<http:request-config name="HTTP_Request_configuration_sample" doc:name="HTTP Request configuration" doc:id="0c4db49c-d634-4233-a8d5-1bba6576197f" basePath="/api/users?page=2" >
+		<http:request-connection protocol="HTTPS" host="reqres.in" />
+	</http:request-config>
+	<flow name="mysecuremuleflowFlow1" doc:id="7da4e272-25c1-48e4-932b-1284d822987e" >
+		<http:listener doc:name="Listener" doc:id="679baaac-c80e-40aa-a621-6384d3eeb6ee" config-ref="HTTP_Listener_config" path="/products" allowedMethods="GET" responseStreamingMode="ALWAYS">
+			<ee:repeatable-file-store-stream />
+		</http:listener>
+		<set-variable  variableName="requestAttributes" value="#[attributes]" doc:name="Set Variable" doc:id="b013647b-c57e-42e1-9396-435eaf8a8b01"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f16dde91-5fed-4cb3-aa5e-3c24666b343f" message='The Headers received are #[vars.requestAttributes.headers."Authorization"] and query params are #[vars.requestAttributes.queryParams]'/>
+		<http:request method="GET" doc:name="Request" doc:id="81a8cd13-8078-4b08-9694-59b881a2ce78" config-ref="HTTP_Request_configuration1" path="/services/data/v42.0/query">
+			 <http:headers>#[{"Authorization": vars.requestAttributes.headers.'Authorization'}]</http:headers>
+			<!--  <http:query-params >#[{"q": vars.requestAttributes.queryParams.'q'}]</http:query-params> -->
+			<http:query-params >#[vars.requestAttributes.queryParams]</http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="5ede4424-316f-4006-87e1-a069d47d0455" message="Response is #[payload]" />
+	</flow>
+	<flow name="mysecuremuleflowFlow2" doc:id="c473a808-5804-418f-b556-0f2d2cf87d45" >
+		<http:listener doc:name="Listener" doc:id="8237d9b7-75e2-4cdc-ae9c-98eb1ef89d1a" config-ref="HTTP_Listener_config" path="/api">
+			<ee:repeatable-file-store-stream />
+		</http:listener>
+		<set-variable  variableName="requestAttributes" value="#[attributes]" doc:name="Set Variable" doc:id="b013647b-c57e-42e1-9396-435eaf8a8b01"/>
+		<http:request method="GET" doc:name="Request" doc:id="98c3b414-af5c-4d4b-88b6-870faeba7f6f" config-ref="HTTP_Request_configuration_sample" path="/api/users">
+			<!-- <http:headers>#[vars.requestAttributes.headers]</http:headers>
+			<http:query-params >#[vars.requestAttributes.queryParams]</http:query-params> -->
+		</http:request>
+	</flow>
+	<flow name="mysecuremuleflowFlow" doc:id="6ef9251b-84b3-412d-b344-629a09aef7fd" >
+		<http:listener doc:name="Listener" doc:id="707169c9-7f43-47b6-9873-19805e3aa687" config-ref="HTTP_Listener_config" path="/">
+			<ee:repeatable-file-store-stream />
+		</http:listener>
+		<set-payload value='#["Server is up!!"]' doc:name="Set Payload" doc:id="9eaca749-bf24-487b-a631-430697dad501" />
+	</flow>
+</mule>
