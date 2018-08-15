@@ -31,7 +31,7 @@ http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/m
 		<http:request-connection protocol="HTTPS" host="reqres.in" />
 	</http:request-config>
 	<flow name="mysecuremuleflowFlow1" doc:id="7da4e272-25c1-48e4-932b-1284d822987e" >
-		<http:listener doc:name="Listener" doc:id="679baaac-c80e-40aa-a621-6384d3eeb6ee" config-ref="HTTP_Listener_config" path="/products" allowedMethods="GET" responseStreamingMode="ALWAYS">
+		<http:listener doc:name="Listener" doc:id="679baaac-c80e-40aa-a621-6384d3eeb6ee" config-ref="HTTP_Listener_config" path="/proxy" allowedMethods="GET" responseStreamingMode="ALWAYS">
 			<ee:repeatable-file-store-stream />
 		</http:listener>
 		<set-variable  variableName="requestAttributes" value="#[attributes]" doc:name="Set Variable" doc:id="b013647b-c57e-42e1-9396-435eaf8a8b01"/>
@@ -42,16 +42,6 @@ http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/m
 			<http:query-params >#[vars.requestAttributes.queryParams]</http:query-params>
 		</http:request>
 		<logger level="INFO" doc:name="Logger" doc:id="5ede4424-316f-4006-87e1-a069d47d0455" message="Response is #[payload]" />
-	</flow>
-	<flow name="mysecuremuleflowFlow2" doc:id="c473a808-5804-418f-b556-0f2d2cf87d45" >
-		<http:listener doc:name="Listener" doc:id="8237d9b7-75e2-4cdc-ae9c-98eb1ef89d1a" config-ref="HTTP_Listener_config" path="/api">
-			<ee:repeatable-file-store-stream />
-		</http:listener>
-		<set-variable  variableName="requestAttributes" value="#[attributes]" doc:name="Set Variable" doc:id="b013647b-c57e-42e1-9396-435eaf8a8b01"/>
-		<http:request method="GET" doc:name="Request" doc:id="98c3b414-af5c-4d4b-88b6-870faeba7f6f" config-ref="HTTP_Request_configuration_sample" path="/api/users">
-			<!-- <http:headers>#[vars.requestAttributes.headers]</http:headers>
-			<http:query-params >#[vars.requestAttributes.queryParams]</http:query-params> -->
-		</http:request>
 	</flow>
 	<flow name="mysecuremuleflowFlow" doc:id="6ef9251b-84b3-412d-b344-629a09aef7fd" >
 		<http:listener doc:name="Listener" doc:id="707169c9-7f43-47b6-9873-19805e3aa687" config-ref="HTTP_Listener_config" path="/">
